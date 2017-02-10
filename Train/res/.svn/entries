@@ -1,0 +1,64 @@
+8
+
+dir
+4
+https://172.16.41.175/svn/1511/Train/res
+https://172.16.41.175/svn/1511
+
+
+
+2016-03-17T08:39:01.671323Z
+4
+wangyong
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+7fd8bdd3-be2b-b245-a57a-21f6bc3897a5
+
+drawable-hdpi
+dir
+
+drawable-ldpi
+dir
+
+drawable-mdpi
+dir
+
+drawable-xhdpi
+dir
+
+drawable-xxhdpi
+dir
+
+layout
+dir
+
+menu
+dir
+
+values
+dir
+
+values-sw600dp
+dir
+
+values-sw720dp-land
+dir
+
+values-v11
+dir
+
+values-v14
+dir
+
