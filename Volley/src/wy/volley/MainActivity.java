@@ -44,14 +44,15 @@ public class MainActivity extends Activity {
 
 				});
 		mQueue.add(stringRequest);
+		mQueue.start();
 
 		JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-				"https://www.baidu.com" , null,
+				"https://www.baidu.com", null,
 				new Response.Listener<JSONObject>() {
 
 					@Override
 					public void onResponse(JSONObject jsonObject) {
-						Log.i("wy", "22222"+jsonObject.toString());
+						Log.i("wy", "22222" + jsonObject.toString());
 
 					}
 				}, new Response.ErrorListener() {
@@ -63,5 +64,6 @@ public class MainActivity extends Activity {
 					}
 				});
 		mQueue.add(jsonObjectRequest);
+		mQueue.start();
 	}
 }
