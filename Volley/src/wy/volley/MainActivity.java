@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
 		mQueue.add(stringRequest);
 
 		JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-				"http://m.weather.com.cn/mweather/101270101.shtml" , null,
+				"https://www.baidu.com" , null,
 				new Response.Listener<JSONObject>() {
 
 					@Override
