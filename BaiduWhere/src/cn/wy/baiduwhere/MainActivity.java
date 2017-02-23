@@ -1,220 +1,149 @@
 package cn.wy.baiduwhere;
 
-import com.baidu.location.BDLocation;
-import com.baidu.location.BDLocationListener;
-import com.baidu.location.LocationClient;
-import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.BMapManager;
-import com.baidu.mapapi.MKGeneralListener;
-import com.baidu.mapapi.map.LocationData;
-import com.baidu.mapapi.map.MKEvent;
+import com.baidu.mapapi.map.MKMapViewListener;
 import com.baidu.mapapi.map.MapController;
+import com.baidu.mapapi.map.MapPoi;
 import com.baidu.mapapi.map.MapView;
-import com.baidu.mapapi.map.MyLocationOverlay;
-import com.baidu.mapapi.map.PopupClickListener;
-import com.baidu.mapapi.map.PopupOverlay;
 import com.baidu.platform.comapi.basestruct.GeoPoint;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.View.MeasureSpec;
-import android.view.View.OnClickListener;
-import android.view.Window;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	private Toast mToast;
-	private BMapManager mBMapManager;
+	/**
+	 * 地图主控件
+	 */
 	private MapView mMapView;
+	/**
+	 * 完成地图控制
+	 */
 	private MapController mMapController;
-
-	private LocationClient mLocationClient;
-	private LocationData mLocationData;
-
-	private LocationOverlay myLocationOverlay = null;
-
-	private boolean isRequest = false;
-	private boolean isFirstloc = true;
-
-	private PopupOverlay mPopupOverlay = null;// 弹出泡泡图层，浏览节点时使用
-	private View viewCache;
-	private BDLocation location;
+	/**
+	 * 处理回调事件
+	 */
+	private MKMapViewListener mMKMapViewListener;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-		mBMapManager = new BMapManager(this);
-
-		mBMapManager.init("3fWXsGOfVbQOWiczlBtVgqI36zCRseX5",
-				new MKGeneralListener() {
-
-					@Override
-					public void onGetPermissionState(int iError) {
-						if (iError == MKEvent.ERROR_PERMISSION_DENIED) {
-							showToast("API HEY错误！请检查！");
-						}
-					}
-
-					@Override
-					public void onGetNetworkState(int iError) {
-						if (iError == MKEvent.ERROR_NETWORK_CONNECT) {
-							showToast("您的网络出错啦！");
-						}
-					}
-				});
+		DemoApplication app = (DemoApplication) getApplicationContext();
+		if (app.mBMapManager == null) {
+			app.mBMapManager = new BMapManager(this);
+			app.mBMapManager.init(app.strKey,
+					new DemoApplication.MyGeneralListener());
+		}
 		setContentView(R.layout.activity_main);
-
-		findViewById(R.id.request).setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				requestLocation();
-			}
-		});
 
 		mMapView = (MapView) findViewById(R.id.bmapView);
 		mMapController = mMapView.getController();
+		/**
+		 * 设置地图是否响应点击事件 .
+		 */
 		mMapController.enableClick(true);
-		mMapController.setZoom(14);
-		mMapView.setBuiltInZoomControls(true);
-
-		viewCache = LayoutInflater.from(this)
-				.inflate(R.layout.pop_layout, null);
-		mPopupOverlay = new PopupOverlay(mMapView, new PopupClickListener() {
-
-			@Override
-			public void onClickedPopup(int arg0) {
-				mPopupOverlay.hidePop();
-			}
-		});
-
-		mLocationData = new LocationData();
-
-		mLocationClient = new LocationClient(getApplicationContext());
-		mLocationClient.registerLocationListener(new BDLocationListener() {
+		mMapController.setZoom(12);
+		/**
+		 * 将地图移动至指定点
+		 * 使用百度经纬度坐标，可以通过http://api.map.baidu.com/lbsapi/getpoint/index
+		 * .html查询地理坐标 如果需要在百度地图上显示使用其他坐标系统的位置，请发邮件至mapapi@baidu.com申请坐标转换接口
+		 */
+		double cLat = 30.67;
+		double cLon = 104.10;
+		GeoPoint p = new GeoPoint((int) (cLat * 1E6), (int) (cLon * 1E6));
+		mMapController.setCenter(p);
+		mMKMapViewListener = new MKMapViewListener() {
 
 			@Override
-			public void onReceivePoi(BDLocation arg0) {
+			public void onMapMoveFinish() {
+				/**
+				 * 在此处理地图移动完成回调 缩放，平移等操作完成后，此回调被触发
+				 */
 
 			}
 
 			@Override
-			public void onReceiveLocation(BDLocation location) {
-				if (location == null) {
-					return;
+			public void onMapLoadFinish() {
+				Toast.makeText(MainActivity.this, "地图加载完毕!", Toast.LENGTH_SHORT)
+						.show();
+
+			}
+
+			@Override
+			public void onMapAnimationFinish() {
+				/**
+				 * 地图完成带动画的操作（如: animationTo()）后，此回调被触发
+				 */
+
+			}
+
+			@Override
+			public void onGetCurrentMap(Bitmap arg0) {
+				/**
+				 * 当调用过 mMapView.getCurrentMap()后，此回调会被触发 可在此保存截图至存储设备
+				 */
+
+			}
+
+			@Override
+			public void onClickMapPoi(MapPoi mapPoiInfo) {
+				/**
+				 * 在此处理底图poi点击事件 显示底图poi名称并移动至该点 设置过：
+				 * mMapController.enableClick(true)，此回调才能被触发
+				 */
+				String title = "";
+				if (mapPoiInfo != null) {
+					title = mapPoiInfo.strText;
+					Toast.makeText(MainActivity.this, title, Toast.LENGTH_SHORT)
+							.show();
+					mMapController.animateTo(mapPoiInfo.geoPt);
 				}
-				MainActivity.this.location = location;
-				mLocationData.latitude = location.getLatitude();
-				mLocationData.longitude = location.getLongitude();
 
-				mLocationData.accuracy = location.getRadius();
-				mLocationData.direction = location.getDerect();
-
-				myLocationOverlay.setData(mLocationData);
-				mMapView.refresh();
-
-				if (isFirstloc || isRequest) {
-					mMapController.animateTo(new GeoPoint((int) (location
-							.getLatitude() * 1e6), (int) (location
-							.getLongitude() * 1e6)));
-
-					showPopupOverlay(location);
-
-					isRequest = false;
-				}
-
-				isFirstloc = false;
 			}
-		});
-
-		LocationClientOption option = new LocationClientOption();
-		option.setOpenGps(true); // 打开GPRS
-		option.setAddrType("all");// 返回的定位结果包含地址信息
-		option.setCoorType("bd09ll");// 返回的定位结果是百度经纬度,默认值gcj02
-		option.setScanSpan(5000); // 设置发起定位请求的间隔时间为5000ms
-		option.disableCache(false);// 禁止启用缓存定位
-
-		mLocationClient.setLocOption(option);
-		mLocationClient.start(); // 调用此方法开始定位
-
-		// 定位图层初始化
-		myLocationOverlay = new LocationOverlay(mMapView);
-		// 设置定位数据
-		myLocationOverlay.setData(mLocationData);
-
-		myLocationOverlay.setMarker(getResources().getDrawable(
-				R.drawable.location_arrows));
-
-		// 添加定位图层
-		mMapView.getOverlays().add(myLocationOverlay);
-		myLocationOverlay.enableCompass();
-
-		// 修改定位数据后刷新图层生效
-		mMapView.refresh();
+		};
+		mMapView.regMapViewListener(DemoApplication.getInstance().mBMapManager,
+				mMKMapViewListener);
 	}
 
-	private void showPopupOverlay(BDLocation location) {
-		TextView popText = ((TextView) viewCache
-				.findViewById(R.id.location_tips));
-		popText.setText("[我的位置]\n" + location.getAddrStr());
-		mPopupOverlay.showPopup(getBitmapFromView(popText),
-				new GeoPoint((int) (location.getLatitude() * 1e6),
-						(int) (location.getLongitude() * 1e6)), 10);
+	@Override
+	protected void onPause() {
+		/**
+		 * MapView的生命周期与Activity同步，当activity挂起时需调用MapView.onPause()
+		 */
+		mMapView.onPause();
+		super.onPause();
 	}
 
-	public static Bitmap getBitmapFromView(View view) {
-		view.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
-				MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-		view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-		view.buildDrawingCache();
-		Bitmap bitmap = view.getDrawingCache();
-		return bitmap;
+	@Override
+	protected void onResume() {
+		/**
+		 * MapView的生命周期与Activity同步，当activity恢复时需调用MapView.onResume()
+		 */
+		mMapView.onResume();
+		super.onResume();
 	}
 
-	protected void requestLocation() {
-		isRequest = true;
-		if (mLocationClient != null && mLocationClient.isStarted()) {
-			showToast("正在定位......");
-			mLocationClient.requestLocation();
-		} else {
-			Log.d("wy", "locClient is null or not started");
-		}
+	@Override
+	protected void onDestroy() {
+		/**
+		 * MapView的生命周期与Activity同步，当activity销毁时需调用MapView.destroy()
+		 */
+		mMapView.destroy();
+		super.onDestroy();
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		mMapView.onSaveInstanceState(outState);
 
 	}
 
-	private class LocationOverlay extends MyLocationOverlay {
-
-		public LocationOverlay(MapView arg0) {
-			super(arg0);
-		}
-
-		@Override
-		protected boolean dispatchTap() {
-			return super.dispatchTap();
-		}
-
-		@Override
-		public void setMarker(Drawable arg0) {
-			super.setMarker(arg0);
-		}
-	}
-
-	private void showToast(String msg) {
-		if (mToast == null) {
-			mToast = Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT);
-		} else {
-			mToast.setText(msg);
-			mToast.setDuration(Toast.LENGTH_SHORT);
-		}
-		mToast.show();
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		mMapView.onRestoreInstanceState(savedInstanceState);
 	}
 }
